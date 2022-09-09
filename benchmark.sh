@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
 MODE=wasm
-WASMEDGEC=thirdparty/wasmedge/build/tools/wasmedge/wasmedgec
-WASMEDGE=thirdparty/wasmedge/build/tools/wasmedge/wasmedge
-LUCETC=thirdparty/lucet/target/release/lucetc
-LUCET_WASI=thirdparty/lucet/target/release/lucet-wasi
-LUCET_BINDINGS=thirdparty/lucet/lucet-wasi/bindings.json
+#WASMEDGEC=thirdparty/wasmedge/build/tools/wasmedge/wasmedgec
+#WASMEDGE=thirdparty/wasmedge/build/tools/wasmedge/wasmedge
+WASMEDGEC=/home/pi/.wasmedge/bin/wasmedgec
+WASMEDGE=/home/pi/.wasmedge/bin/wasmedge
+
+#LUCETC=thirdparty/lucet/target/release/lucetc
+#LUCET_WASI=thirdparty/lucet/target/release/lucet-wasi
+#LUCET_BINDINGS=thirdparty/lucet/lucet-wasi/bindings.json
 WAVM=thirdparty/wavm/build/bin/wavm
 export WAVM_OBJECT_CACHE_DIR=benchmark/wavm/cache
 TIMEFORMAT=%4R
@@ -16,9 +19,9 @@ NAME=(
     cat-sync
     nbody-c
     nbody-cpp
-    fannkuch-redux-c
-    mandelbrot-c
-    mandelbrot-simd-c
+ #   fannkuch-redux-c
+ #   mandelbrot-c
+ #   mandelbrot-simd-c
     binary-trees-c
     fasta-c
 )
@@ -51,7 +54,7 @@ function prepare() {
     mkdir -p benchmark/native
     # mkdir -p benchmark/wasmedge_interpreter
     mkdir -p benchmark/wasmedge
-    mkdir -p benchmark/lucet
+  #  mkdir -p benchmark/lucet
     mkdir -p benchmark/wavm
     mkdir -p benchmark/wasmer_singlepass
     mkdir -p benchmark/wasmer_cranelift
@@ -67,7 +70,7 @@ function compile() {
     rm -f benchmark/wasmedge/compile.time benchmark/lucet/compile.time benchmark/wavm/compile.time benchmark/wasmer_*/compile.time
     for ((i=0; i<"${#NAME[@]}"; ++i)); do
         (time "$WASMEDGEC" --enable-simd build/"$MODE"/"${NAME[i]}".wasm benchmark/wasmedge/"${NAME[i]}".so 2>&1) 2>> benchmark/wasmedge/compile.time || true
-        (time "$LUCETC" build/"$MODE"/"${NAME[i]}".wasm --wasi_exe --opt-level speed --bindings "$LUCET_BINDINGS" -o benchmark/lucet/"${NAME[i]}".so 2>&1) 2>> benchmark/lucet/compile.time || true
+      #  (time "$LUCETC" build/"$MODE"/"${NAME[i]}".wasm --wasi_exe --opt-level speed --bindings "$LUCET_BINDINGS" -o benchmark/lucet/"${NAME[i]}".so 2>&1) 2>> benchmark/lucet/compile.time || true
         (time "$WAVM" compile --enable simd --format=precompiled-wasm build/"$MODE"/"${NAME[i]}".wasm benchmark/wavm/"${NAME[i]}".wasm 2>&1) 2>> benchmark/wavm/compile.time || true
         (time wasmer compile --enable-simd --singlepass build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmer_singlepass/"${NAME[i]}".wjit 2>&1) 2>> benchmark/wasmer_singlepass/compile.time || true
         (time wasmer compile --enable-simd --cranelift build/"$MODE"/"${NAME[i]}".wasm -o benchmark/wasmer_cranelift/"${NAME[i]}".wjit 2>&1) 2>> benchmark/wasmer_cranelift/compile.time || true
@@ -236,15 +239,25 @@ function print_result() {
 
 prepare
 compile
+timedatectl
 benchmark_native
+timedatectl
 benchmark_wasmedge
-benchmark_lucet
+timedatectl
+#benchmark_lucet
 benchmark_wavm
+timedatectl
 benchmark_wasmer_singlepass
+timedatectl
 benchmark_wasmer_cranelift
+timedatectl
 benchmark_wasmer_llvm
+timedatectl
 benchmark_wasmer_jit
+timedatectl
 benchmark_v8
+timedatectl
 #benchmark_wasmedge_interpreter
 #benchmark_docker
 print_result
+timedatectl
