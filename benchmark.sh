@@ -60,8 +60,8 @@ function prepare() {
     mkdir -p benchmark/wasmer_cranelift
     mkdir -p benchmark/wasmer_llvm
     mkdir -p benchmark/wasmer_jit
-    mkdir -p benchmark/v8
-    mkdir -p benchmark/docker
+   # mkdir -p benchmark/v8
+   # mkdir -p benchmark/docker
     mkdir -p $WAVM_OBJECT_CACHE_DIR
     dd if=/dev/urandom of=benchmark/random bs=4k count=4k
 }
