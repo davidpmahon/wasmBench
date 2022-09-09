@@ -173,4 +173,4 @@ apply_emcc
 invoke_cmake
 sed_wasm_module
 run_wasm_opt
-build_dockers
+#build_dockers
