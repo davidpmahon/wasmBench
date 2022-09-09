@@ -164,10 +164,10 @@ check_git
 check_rustup
 check_wasmer
 
-prepare_lucet
+#prepare_lucet
 prepare_emcc
 prepare_wavm
-prepare_wasmedge
+#prepare_wasmedge
 
 apply_emcc
 invoke_cmake
