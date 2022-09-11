@@ -1,4 +1,4 @@
-/ The Computer Language Benchmarks Game
+// The Computer Language Benchmarks Game
 // https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
 //
 // Short and simple single-threaded version by leonardo.
