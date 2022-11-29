@@ -34,6 +34,20 @@ function check_rustup() {
     fi
 }
 
+function check_golang() {
+    if ! go version>/dev/null; then
+        echo "golang required!"
+        exit 1
+    fi
+}
+
+function check_tinygo() {
+    if ! tinygo version>/dev/null; then
+        echo "tinygo required!"
+        exit 1
+    fi
+}
+
 function check_wasmer() {
     if ! wasmer --version>/dev/null; then
         echo "wasmer required!"
@@ -41,39 +55,6 @@ function check_wasmer() {
     fi
 }
 
-function prepare_emcc() {
-    if [ -e thirdparty/emsdk/.git ]; then
-        pushd thirdparty/emsdk
-        git fetch -a
-        git reset --hard origin/HEAD
-        ./emsdk install latest
-        ./emsdk activate latest
-        popd
-    else
-        git clone --depth 1 https://github.com/emscripten-core/emsdk.git thirdparty/emsdk
-        pushd thirdparty/emsdk
-        ./emsdk install latest
-        ./emsdk activate latest
-        popd
-    fi
-}
-
-function prepare_lucet() {
-    if [ -e thirdparty/lucet/.git ]; then
-        pushd thirdparty/lucet
-        git fetch -a
-        git reset --hard origin/HEAD
-        git submodule update --init --recursive
-        make build
-        popd
-    else
-        git clone --depth 1 https://github.com/bytecodealliance/lucet.git thirdparty/lucet
-        pushd thirdparty/lucet
-        git submodule update --init --recursive
-        make build
-        popd
-    fi
-}
 
 function prepare_wasmedge() {
     if [ -e thirdparty/wasmedge/.git ]; then
@@ -115,15 +96,34 @@ function prepare_wavm() {
     fi
 }
 
-function apply_emcc() {
-    pushd thirdparty/emsdk
-    source ./emsdk_env.sh
-    popd
-}
+
 
 function invoke_cmake() {
     CC=clang-11 CXX=clang++-11 cmake -B build . -DCMAKE_BUILD_TYPE=Release
     cmake --build build
+}
+
+
+function build_rust(){
+   rustup target add wasm32-wasi
+   pushd rust/benchmark
+   cargo +nightly build --target wasm32-wasi --release --no-default-features --features wasm -v
+   cp target/wasm32-wasi/release/*.wasm  ~/wasmBench/build/wasm/
+   cargo +nightly build  --release -v
+   cp target/release/*-r ~/wasmBench/build/native/
+   popd 
+}
+
+function build_go(){
+   pushd golang/src/wasm
+   for i in *.go; do
+	echo "Compiling : ${i%.*}"
+    tinygo build -o "${i%.*}"-g.wasm -target=wasi -wasm-abi=generic -gc=leaking -no-debug ./"$i"
+	tinygo build -o "${i%.*}"-g ./"$i"
+   done
+   cp *.wasm  ~/wasmBench/build/wasm/
+   cp *-g ~/wasmBench/build/native/
+   popd 
 }
 
 function sed_wasm_module() {
@@ -162,15 +162,17 @@ check_cmake
 check_clang
 check_git
 check_rustup
+check_golang
+check_tinygo
 check_wasmer
 
-prepare_lucet
-prepare_emcc
 prepare_wavm
-prepare_wasmedge
 
-apply_emcc
 invoke_cmake
-sed_wasm_module
-run_wasm_opt
+build_rust
+build_go
+
+#sed_wasm_module
+#run_wasm_opt
 build_dockers
+
